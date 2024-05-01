@@ -27,7 +27,9 @@ def get_CUB_loaders(data_dir, batch_size, train_ratio, train = False):
             test_data_len = int(len(all_data) - train_data_len - valid_data_len)
             train_data, val_data, test_data = random_split(all_data, [train_data_len, valid_data_len, test_data_len])
             train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=4)
-            return train_loader, train_data_len
+            val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=True, num_workers=4)
+            test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=4)
+            return train_loader, val_loader, test_loader
         
         else:
             transform = transforms.Compose([

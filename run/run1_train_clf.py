@@ -30,7 +30,7 @@ def train(args, train_loader, val_loader, test_loader, model):
     criterion = nn.CrossEntropyLoss(label_smoothing=0.2)
     criterion = criterion.to(args.device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    step_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.96)
+    step_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.96)
     summary_writer = SummaryWriter(log_dir=args.save_dir)
     best_acc = 0
     
@@ -47,9 +47,10 @@ def train(args, train_loader, val_loader, test_loader, model):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            step_scheduler.step()
             
             train_loss += loss.item()
+            
+        step_scheduler.step()
                 
         total_loss = round(train_loss / len(train_loader), 4)
         summary_writer.add_scalar("train/loss", total_loss, e)
@@ -129,11 +130,12 @@ def main():
 
     random.seed(args.seed)
     torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
     cudnn.deterministic = True
     cudnn.benchmark = False
     
-    (train_loader, train_data_len) = get_CUB_loaders(args.data_path, args.batch_size, args.train_ratio, train=True)
-    (val_loader, test_loader, valid_data_len, test_data_len) = get_CUB_loaders(args.data_path, int(args.batch_size/2), args.train_ratio, train=False)
+    (train_loader, val_loader, test_loader) = get_CUB_loaders(args.data_path, args.batch_size, args.train_ratio, train=True)
+    # (val_loader, test_loader, valid_data_len, test_data_len) = get_CUB_loaders(args.data_path, int(args.batch_size/2), args.train_ratio, train=False)
 
     args.model_name = 'resnet50'
     model = models.resnet50(pretrained=True)
