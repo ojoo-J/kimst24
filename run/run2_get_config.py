@@ -69,35 +69,39 @@ def main():
     model = model.to(args.device)
     model.eval()
     
-    relu_list = []
-    for name, layer in model.named_modules():
-        if isinstance(layer, nn.ReLU):
-            relu_list.append(layer)
+    #relu_list = []
+    #for name, layer in model.named_modules():
+    #    if isinstance(layer, nn.ReLU):
+    #        relu_list.append(layer)
             
     total_activation = []
     
     with torch.no_grad():
         for i, (imgs, labels) in enumerate(tqdm(target_loader)):
-            HookF = [Hook(relu_layer) for relu_layer in [relu_list[-1]]]
-            act_list = []
+            #HookF = [Hook(relu_layer) for relu_layer in [relu_list[-1]]]
+            #HookF = [Hook(model.avgpool)]
+            #act_list = []
             output = model(imgs.to(args.device))
-            preds = output.argmax(dim=1)
-            eq = torch.where(output.argmax(dim=1).cpu().detach() == labels,1,0)
+            #preds = output.argmax(dim=1)
+            probs = nn.functional.softmax(output).max(dim=1)[0]
+            #eq = torch.where(output.argmax(dim=1).cpu().detach() == labels,1,0)
             
-            for hook in HookF:
-                act_list.append(hook.outputs.cpu().detach())
-                hook.clear()
+            # for hook in HookF:
+            #     act_list.append(hook.outputs.cpu().detach())
+            #     hook.clear()
                 
-            with open(f"{args.save_dir}/{args.phase}_activation_{i}.pkl", "wb") as fw:
-                pickle.dump(act_list, fw)
-            with open(f"{args.save_dir}/{args.phase}_eq_{i}.pkl", "wb") as fw:
-                pickle.dump(eq, fw)
-            with open(f"{args.save_dir}/{args.phase}_x_{i}.pkl", "wb") as fw:
-                pickle.dump(imgs, fw)
-            with open(f"{args.save_dir}/{args.phase}_y_{i}.pkl", "wb") as fw:
-                pickle.dump(labels, fw)
-            with open(f"{args.save_dir}/{args.phase}_preds_{i}.pkl", "wb") as fw:
-                pickle.dump(preds, fw)
+            # with open(f"{args.save_dir}/{args.phase}_activation_{i}.pkl", "wb") as fw:
+            #     pickle.dump(act_list, fw)
+            # with open(f"{args.save_dir}/{args.phase}_eq_{i}.pkl", "wb") as fw:
+            #     pickle.dump(eq, fw)
+            # with open(f"{args.save_dir}/{args.phase}_x_{i}.pkl", "wb") as fw:
+            #     pickle.dump(imgs, fw)
+            # with open(f"{args.save_dir}/{args.phase}_y_{i}.pkl", "wb") as fw:
+            #     pickle.dump(labels, fw)
+            # with open(f"{args.save_dir}/{args.phase}_preds_{i}.pkl", "wb") as fw:
+            #     pickle.dump(preds, fw)
+            with open(f"{args.save_dir}/{args.phase}_probs_{i}.pkl", "wb") as fw:
+                pickle.dump(probs, fw)
     
 
 if __name__ == "__main__":
